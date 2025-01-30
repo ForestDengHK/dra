@@ -1,0 +1,11 @@
+[MESSAGES CONTROL]
+disable=W0703
+
+[MASTER]
+extension-pkg-whitelist=logging  # Critical for C-extension modules
+ignore-patterns=.venv, venv
+
+[TYPECHECK]
+generated-members=logging.* # Wildcard for all submodules
+ignored-modules=logging  # Fallback to skip logging checks
+

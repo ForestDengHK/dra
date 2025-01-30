@@ -1,0 +1,62 @@
+[tool.poetry]
+name = "dra"
+version = "0.1.0"
+description = "A metadata-driven ETL framework for Apache Spark and Databricks"
+authors = ["Forest Deng <forest.jinying.denghk@outlook.com>"]
+readme = "README.md"
+packages = [{include = "dra", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pyspark = "^3.5.0"
+pyyaml = "^6.0.1"
+delta-spark = "^3.0.0"
+great-expectations = "^0.18.0"
+typing-extensions = "^4.9.0"
+opencensus = "^0.11.4"
+opencensus-ext-azure = "^1.1.13"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.4"
+pytest-cov = "^4.1.0"
+pytest-mock = "^3.12.0"
+black = "^23.12.1"
+isort = "^5.13.2"
+flake8 = "^7.0.0"
+mypy = "^1.8.0"
+pre-commit = "^3.6.0"
+sphinx = "^7.2.6"
+sphinx-rtd-theme = "^2.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --cov=dra --cov-report=term-missing"
+testpaths = [
+    "tests",
+]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::UserWarning",
+] 
