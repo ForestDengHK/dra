@@ -5,6 +5,7 @@ contextual logging and Azure Application Insights integration.
 """
 
 import logging
+import logging.config  # <-- Make sure logging.config is explicitly imported
 from typing import Optional, Callable, Any
 import yaml
 from dra.common.secrets.manager import SecretsManager
@@ -112,4 +113,4 @@ class DRALogger:
         logger.error = wrap_log(logger.error)
         logger.critical = wrap_log(logger.critical)
         
-        return logger 
+        return logger

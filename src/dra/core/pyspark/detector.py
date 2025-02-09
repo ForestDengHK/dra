@@ -1,5 +1,4 @@
 # src/ara/pyspark/detector.py
-import os
 from pyspark.sql import SparkSession
 from dra.core.pyspark.environment import (
     SparkEnvironment,
@@ -37,18 +36,14 @@ class EnvironmentDetector:
         """
         try:
             # Check if running in unittest mode
-            if os.environ.get('IS_UNITTEST'):
-                return LocalEnvironment()
-
-            # Try to get active session first
             spark = SparkSession.getActiveSession()
             
             if spark:
                 # Check for Databricks environment
-                if "databricks" in spark.sparkContext.getConf().getAll():
+                if any("databricks" in key.lower() for key in spark.conf.getAll):
                     return DatabricksEnvironment()
                 # Check for Fabric environment
-                elif "fabric" in spark.sparkContext.getConf().getAll():
+                elif any("fabric" in key.lower() for key in spark.sparkContext.getConf().getAll()):
                     return FabricEnvironment()
             
             # Default to Local if no specific environment detected

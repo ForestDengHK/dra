@@ -1,7 +1,7 @@
 """Unit tests for logging handlers."""
 
 import logging
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 import pytest
 from opencensus.ext.azure.log_exporter import AzureLogHandler
 
@@ -29,13 +29,21 @@ def mock_azure_handler():
     """Create a mock Azure handler."""
     return Mock(spec=AzureLogHandler)
 
+@pytest.mark.usefixtures('mock_validate_key')
 class TestAzureLogHandlerWithContext:
     """Test cases for AzureLogHandlerWithContext."""
+    
+    @pytest.fixture(autouse=True)
+    def mock_validate_key(self):
+        """Mock the instrumentation key validation."""
+        with patch('opencensus.ext.azure.common.utils.validate_instrumentation_key'):
+            yield
     
     def test_init(self):
         """Should initialize correctly."""
         handler = AzureLogHandlerWithContext(instrumentation_key="test-key")
-        assert handler._lock is not None
+        assert handler is not None
+        assert handler.options.instrumentation_key == "test-key"
     
     def test_emit_with_context(self, mock_record):
         """Should include context in custom dimensions."""

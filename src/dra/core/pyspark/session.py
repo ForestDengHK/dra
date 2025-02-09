@@ -5,7 +5,7 @@ import logging
 from py4j.protocol import Py4JError
 from pyspark.sql.utils import AnalysisException
 from dra.core.pyspark.detector import EnvironmentDetector
-from dra.core.pyspark.environment import SparkEnvironment
+from dra.core.pyspark.environment import SparkEnvironment, DatabricksEnvironment
 from dra.core.pyspark.exceptions import SparkInitializationError
 from dra.core.pyspark.utils import SparkUtils
 
@@ -45,27 +45,34 @@ class SparkSessionManager:
         return cls._instance
 
     def _initialize_contexts(self):
-        """
-        Initialize SparkContext and SQLContext with proper error handling.
-        Both contexts will be set to None if initialization fails.
-        """
+        """Initialize SparkContext and SQLContext based on environment."""
         try:
-            self._sc = self._session.sparkContext
-            logger.info("Successfully initialized SparkContext")
-        except (Py4JError, AttributeError) as e:
-            self._sc = None
-            logger.warning("Failed to initialize SparkContext: %s. This may be expected in serverless or shared cluster environments.", str(e))
-
-        try:
-            if self._sc is not None:
+            # Only initialize contexts if:
+            # - Not in Databricks shared cluster with runtime >= 14.3
+            # - Not using Databricks Connect >= 13
+            # - Not in local mode without Databricks Connect
+            should_init_contexts = True
+            
+            if isinstance(self._environment, DatabricksEnvironment):
+                if (self._environment.is_shared_cluster and self._environment.is_serverless):
+                    should_init_contexts = False
+            
+            if should_init_contexts:
+                self._sc = self._session.sparkContext
                 self._sql_context = SQLContext(self._sc, self._session)
-                logger.info("Successfully initialized SQLContext")
+                logger.info("Successfully initialized SparkContext and SQLContext")
             else:
+                self._sc = None
                 self._sql_context = None
-                logger.info("Skipping SQLContext initialization as SparkContext is not available")
-        except (Py4JError, AnalysisException) as e:
+                logger.info("Skipping context initialization due to environment configuration")
+                
+        except (Py4JError, AttributeError, AnalysisException) as e:
+            self._sc = None
             self._sql_context = None
-            logger.warning("Failed to initialize SQLContext: %s. This may be expected in serverless or shared cluster environments.", str(e))
+            logger.warning(
+                "Failed to initialize contexts: %s. This may be expected in certain environments.", 
+                str(e)
+            )
 
     def _initialize(self):
         """

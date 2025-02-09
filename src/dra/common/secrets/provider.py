@@ -23,7 +23,7 @@ class SecretsProvider(ABC):
         Returns:
             Secret value if found, None otherwise
         """
-        pass
+        
     
     @abstractmethod
     def list_secrets(self, scope: str) -> Dict[str, Any]:
